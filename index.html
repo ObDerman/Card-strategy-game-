@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Card Strategy Game</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: url('background.jpg') no-repeat center center fixed;
+            background-size: cover;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .game-container {
+            background-color: rgba(255, 255, 255, 0.8);
+            border: 1px solid #ccc;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+        .card {
+            border: 1px solid #000;
+            padding: 10px;
+            margin: 10px;
+            display: inline-block;
+            width: 150px;
+            height: 250px;
+            position: relative;
+        }
+        .card img {
+            max-width: 100%;
+            max-height: 100px;
+            display: block;
+            margin: 0 auto 10px;
+        }
+        .players {
+            display: flex;
+            justify-content: space-between;
+        }
+        .player {
+            flex: 1;
+            margin: 10px;
+            position: relative;
+        }
+        .swap-button {
+            margin-top: 10px;
+        }
+        .card-details {
+            text-align: center;
+        }
+        .attack-effect {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            display: none;
+            font-size: 24px;
+            color: red;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>Card Strategy Game</h1>
+        <div class="players">
+            <div class="player" id="player1">
+                <div id="player1-card" class="card"></div>
+                <div id="player1-attack" class="attack-effect">Attack!</div>
+                <button class="swap-button" onclick="swapPlayer1Card()">Swap Card</button>
+            </div>
+            <div class="player" id="player2">
+                <div id="player2-card" class="card"></div>
+                <div id="player2-attack" class="attack-effect">Attack!</div>
+                <button class="swap-button" onclick="swapPlayer2Card()">Swap Card</button>
+            </div>
+        </div>
+        <button onclick="startGame()">Start Game</button>
+    </div>
+    <script>
+        const warriors = Array.from({ length: 30 }, () => ({
+            name: 'Warrior',
+            attack: Math.floor(Math.random() * 10) + 1,
+            defense: Math.floor(Math.random() * 121) + 30, // دفاع عشوائي بين 30 و 150
+            image: 'warrior.png'
+        }));
+
+        const wizards = Array.from({ length: 30 }, () => ({
+            name: 'Wizard',
+            attack: Math.floor(Math.random() * 10) + 1,
+            defense: Math.floor(Math.random() * 121) + 30, // دفاع عشوائي بين 30 و 150
+            image: 'wizard.png'
+        }));
+
+        const snipers = Array.from({ length: 30 }, () => ({
+            name: 'Sniper',
+            attack: Math.floor(Math.random() * 10) + 1,
+            defense: Math.floor(Math.random() * 121) + 30, // دفاع عشوائي بين 30 و 150
+            image: 'sniper.png'
+        }));
+
+        const allCards = [...warriors, ...wizards, ...snipers];
+
+        let player1Card;
+        let player2Card;
+        let player1Swaps = 2;
+        let player2Swaps = 2;
+        let player1Lives = 3;
+        let player2Lives = 3;
+
+        function startGame() {
+            player1Card = getRandomCard();
+            player2Card = getRandomCard();
+            displayCards();
+            setTimeout(() => battle(player1Card, player2Card), 1000); // تأخير لبدء المعركة
+        }
+
+        function getRandomCard() {
+            const randomIndex = Math.floor(Math.random() * allCards.length);
+            return allCards[randomIndex];
+        }
+
+        function displayCards() {
+            const player1CardContainer = document.getElementById('player1-card');
+            const player2CardContainer = document.getElementById('player2-card');
+
+            player1CardContainer.innerHTML = `
+                <img src="${player1Card.image}" alt="${player1Card.name}">
+                <div class="card-details">
+                    <h2>${player1Card.name}</h2>
+                    <p>Attack: ${player1Card.attack}</p>
+                    <p>Defense: ${player1Card.defense}</p>
+                </div>
+            `;
+
+            player2CardContainer.innerHTML = `
+                <img src="${player2Card.image}" alt="${player2Card.name}">
+                <div class="card-details">
+                    <h2>${player2Card.name}</h2>
+                    <p>Attack: ${player2Card.attack}</p>
+                    <p>Defense: ${player2Card.defense}</p>
+                </div>
+            `;
+        }
+
+        function swapPlayer1Card() {
+            if (player1Swaps > 0) {
+                player1Card = getRandomCard();
+                player1Swaps--;
+                displayCards();
+                setTimeout(() => battle(player1Card, player2Card), 1000); // بدء المعركة بالبطاقة الجديدة
+            } else {
+                alert("You have used all your swaps!");
+            }
+        }
+
+        function swapPlayer2Card() {
+            if (player2Swaps > 0) {
+                player2Card = getRandomCard();
+                player2Swaps--;
+                displayCards();
+                setTimeout(() => battle(player1Card, player2Card), 1000); // بدء المعركة بالبطاقة الجديدة
+            } else {
+                alert("You have used all your swaps!");
+            }
+        }
+
+        function battle(card1, card2) {
+            const player1Attack = document.getElementById('player1-attack');
+            const player2Attack = document.getElementById('player2-attack');
+
+            // اللاعب 1 يهاجم
+            player1Attack.style.display = 'block';
+            setTimeout(() => {
+                player1Attack.style.display = 'none';
+                card2.defense -= card1.attack;
+                if (card2.defense <= 0) {
+                    player2Lives--;
+                    if (player2Lives > 0) {
+                        swapPlayer2Card();
+                    } else {
+                        alert("Player 1 wins!");
+                        return;
+                    }
+                }
+                displayCards();
+
+                // اللاعب 2 يهاجم
+                player2Attack.style.display = 'block';
+                setTimeout(() => {
+                    player2Attack.style.display = 'none';
+                    card1.defense -= card2.attack;
+                    if (card1.defense <= 0) {
+                        player1Lives--;
+                        if (player1Lives > 0) {
+                            swapPlayer1Card();
+                        } else {
+                            alert("Player 2 wins!");
+                            return;
+                        }
+                    }
+                    displayCards();
+
+                    // استمر في المعركة إذا لم يفز أحد بعد
+                    setTimeout(() => battle(card1, card2), 1000);
+                }, 1000);
+            }, 1000);
+        }
+    </script>
+</body>
+</html>
